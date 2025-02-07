@@ -7,6 +7,6 @@
   </h1>
 </div>
 
-A simple 2D game engine for the web. This is not for production yet and was made as a learning project.
+A Smash-like platform fighting game made for the Web, using WebAPIs and TypeScript. Engine included
 
 
