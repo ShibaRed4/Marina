@@ -12,6 +12,7 @@ dist
 assets
 index.html
 dist-ssr
+src/engine/scripts
 *.local
 
 # Editor directories and files
