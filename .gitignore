@@ -13,6 +13,7 @@ assets
 index.html
 dist-ssr
 src/engine/scripts
+public
 *.local
 
 # Editor directories and files

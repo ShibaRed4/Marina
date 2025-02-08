@@ -1,58 +1,82 @@
 class Render {
-  ctx: CanvasRenderingContext2D;
-  renderQueue: Array<any>;
-  renderFunctions: Array<() => void>;
+	ctx: CanvasRenderingContext2D;
+	renderQueue: Array<any>;
+	renderFunctions: Array<() => void>;
 
-  constructor(ctx: CanvasRenderingContext2D) {
-    this.ctx = ctx;
-    this.renderQueue = [];
-    this.renderFunctions = [];
-  }
+	constructor(ctx: CanvasRenderingContext2D) {
+		this.ctx = ctx;
+		this.renderQueue = [];
+		this.renderFunctions = [];
+	}
 
-  addItems(Instance: any) {
-    this.renderQueue.push(Instance);
-  }
+	addItems(Instance: any) {
+		this.renderQueue.push(Instance);
+	}
 
-  unPack() {
-    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+	updateItem(updatedInstance: any): void {
+		// Find the instance in the renderQueue and update it
+		for (let i = 0; i < this.renderQueue.length; i++) {
+			if (this.renderQueue[i] === updatedInstance) {
+				// Update the instance in place
+				this.renderQueue[i] = updatedInstance;
+				return; // Exit after updating
+			}
+		}
+	}
 
-    this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+	unPack() {
+		this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    for (const obj of this.renderQueue) {
-      const { Position, Size, Image } = obj; // Corrected property names
+		this.ctx.fillStyle = 'black';
+		this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-      if (Image) {
-        // Draw image sprite
-        this.ctx.drawImage(
-          Image, // Use Image instead of sprite
-          Position.x,
-          Position.y,
-          Size.x, // Use Size.x as width
-          Size.y // Use Size.y as height
-        );
-      } else {
-        this.ctx.fillStyle = "white";
-        this.ctx.fillRect(Position.x, Position.y, Size.x, Size.y);
-      }
-    }
-  }
+		for (const obj of this.renderQueue) {
+			const { instanceType, Position, Size, ImageUrl } = obj; // Get instanceType
 
-  start() {
-    const loop = () => {
-      this.unPack(); // Call unPack inside the loop
+			switch (instanceType) {
+				case "Frame":
+					// Draw a Frame (assumed to be an image)
+					if (ImageUrl) {
 
-      // Call renderFunctions after unPack
-      for (const runtimeFunction of this.renderFunctions) {
-        runtimeFunction();
-      }
+					let htmlImage = new Image(Size.x, Size.y)
+					htmlImage.src = ImageUrl
+					this.ctx.drawImage(
+						htmlImage,
+						Position.x,
+						Position.y,
+						Size.x,
+						Size.y
+					);
+				}
+				break;
+				case "Sprite":
+					// Draw a Sprite (you'll need to implement sprite drawing logic)
+					// Example: this.drawSprite(obj);
+					console.log("Drawing Sprite (not implemented)");
+				break;
+				default:
+					// Draw a default rectangle if instanceType is unknown
+					this.ctx.fillStyle = "white";
+				this.ctx.fillRect(Position.x, Position.y, Size.x, Size.y);
+				break;
+			}
+		}
+	}
 
-      requestAnimationFrame(loop); // Use the loop function
-    };
+	start() {
+		const loop = () => {
+			this.unPack(); // Call unPack inside the loop
 
-    loop(); // Start the loop
-  }
+			// Call renderFunctions after unPack
+			for (const runtimeFunction of this.renderFunctions) {
+				runtimeFunction();
+			}
+
+			requestAnimationFrame(loop); // Use the loop function
+		};
+
+		loop(); // Start the loop
+	}
 }
 
 export default Render;
-
