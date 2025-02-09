@@ -1,7 +1,7 @@
 import Render from "../engine/Render";
 import Util from "../engine/Util";
 import InputService from "../engine/InputService";
-import InstanceManager, { Instance } from "../engine/InstanceManager";
+import InstanceManager from "../engine/InstanceManager";
 
 const UIS = new InputService();
 
@@ -15,43 +15,24 @@ export function init(_Renderer: Render, Instance: InstanceManager) {
   backGround.Anchored = true;
 
   const floor = Instance.new("Part", "Floor");
-  floor.Position = Util.Vector2(50, 500);
-  floor.Size = Util.Vector2(200, 50);
+  floor.Position = Util.Vector2(50,500);
+  floor.Size = Util.Vector2(200,50);
   floor.Anchored = true;
 
   const player = Instance.new("Player", "MyPlayer"); // Create a player with a specific name
   player.Position = Util.Vector2(100, 100);
   player.Size = Util.Vector2(50, 50);
 
-  // main.ts
-  player.on("Collided", (otherEntity: Instance) => {
-    if (otherEntity.Name === "Floor") {
-      player.Position = {
-        x: player.Position.x,
-        y: otherEntity.Position.y - player.Size.y, // Accurate position
-      };
-      player.Velocity.y = 0; // Stop falling
-    }
-  });
 
-  UIS.bindInputBegan((inputObject) => {
-    if (inputObject.KeyCode === "Space") {
-      player.Velocity.y = -65;
-    }
-  });
-
-  UIS.bindInputEnded((inputObject) => {
-	  const movementKeys = ["KeyD", "KeyA"];
-})
+}
 
 export function onUpdate(_Renderer: Render, Instance: InstanceManager) {
   const player = Instance.getInstance("MyPlayer");
 
-
   if (UIS.getCurrentKeyCode() === "KeyD") {
-    player.Velocity.x = 20;
+    player.Position = Util.Vector2(player.Position.x + 5, player.Position.y);
   }
   if (UIS.getCurrentKeyCode() === "KeyA") {
-    player.Velocity.x = -20;
+    player.Position = Util.Vector2(player.Position.x - 5, player.Position.y);
   }
 }
