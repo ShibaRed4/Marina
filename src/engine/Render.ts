@@ -25,38 +25,56 @@ class Render {
   }
 
   unPack() {
-    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.clearRect(
+      -this.ctx.canvas.width / 2,
+      -this.ctx.canvas.height / 2,
+      this.ctx.canvas.width,
+      this.ctx.canvas.height,
+    );
+
+    // Move the origin to the center
+    this.ctx.translate(this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
 
     for (const obj of this.renderQueue) {
-      const { instanceType, Position, Size, ImageUrl } = obj; // Get instanceType
+      const {
+        instanceType,
+        Position,
+        ProjectedPosition,
+        ProjectedSize,
+        Size,
+        ImageUrl,
+      } = obj;
 
       switch (instanceType) {
         case "Frame":
-          // Draw a Frame (assumed to be an image)
           if (ImageUrl) {
             let htmlImage = new Image(Size.x, Size.y);
             htmlImage.src = ImageUrl;
             this.ctx.drawImage(
               htmlImage,
-              Position.x,
-              Position.y,
+              Position.x - Size.x / 2,
+              Position.y - Size.y / 2,
               Size.x,
               Size.y,
             );
           }
           break;
-        case "Sprite":
-          // Draw a Sprite (you'll need to implement sprite drawing logic)
-          // Example: this.drawSprite(obj);
-          console.log("Drawing Sprite (not implemented)");
+        case "Camera":
           break;
-        default:
-          // Draw a default rectangle if instanceType is unknown
+        case "Part":
           this.ctx.fillStyle = "white";
-          this.ctx.fillRect(Position.x, Position.y, Size.x, Size.y);
+          this.ctx.fillRect(
+            ProjectedPosition.x - ProjectedSize.x / 2,
+            ProjectedPosition.y - ProjectedSize.y / 2,
+            ProjectedSize.x,
+            ProjectedSize.y,
+          );
           break;
       }
     }
+
+    // Reset the transformation matrix to avoid cumulative translations
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
   start() {

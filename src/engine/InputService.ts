@@ -1,5 +1,5 @@
 class InputService {
-  private currentKeyCode: string 
+  private pressedKeys: Set<string>;
   private inputBeganCallback: ((inputObject: any) => void) | null;
   private inputEndedCallback: ((inputObject: any) => void) | null;
   private mousePosition: { x: number; y: number };
@@ -8,7 +8,7 @@ class InputService {
   private onReleaseCallbacks: ((mouseData: any) => void)[];
 
   constructor() {
-    this.currentKeyCode = "";
+    this.pressedKeys = new Set();
     this.inputBeganCallback = null;
     this.inputEndedCallback = null;
     this.mousePosition = { x: 0, y: 0 };
@@ -28,7 +28,7 @@ class InputService {
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
-    this.currentKeyCode = event.code;
+    this.pressedKeys.add(event.code);
     const inputObject = this.createInputObject(event);
     if (this.inputBeganCallback) {
       this.inputBeganCallback(inputObject);
@@ -36,11 +36,10 @@ class InputService {
   }
 
   private handleKeyUp(event: KeyboardEvent): void {
-    this.currentKeyCode = "";
+    this.pressedKeys.delete(event.code);
     const inputObject = this.createInputObject(event);
-
-    if(this.inputEndedCallback) {
-	    this.inputEndedCallback(inputObject)
+    if (this.inputEndedCallback) {
+      this.inputEndedCallback(inputObject);
     }
   }
 
@@ -60,8 +59,8 @@ class InputService {
     this.onReleaseCallbacks.forEach((callback) => callback(mouseData));
   }
 
-  getCurrentKeyCode(): string {
-    return this.currentKeyCode;
+  getPressedKeys(): string[] {
+    return Array.from(this.pressedKeys);
   }
 
   bindInputBegan(callback: (inputObject: any) => void): void {
@@ -92,6 +91,7 @@ class InputService {
   private createInputObject(event: KeyboardEvent): any {
     return {
       KeyCode: event.code,
+      KeyCodes: [event.code],
       IsShiftDown: event.shiftKey,
       IsControlDown: event.ctrlKey,
       IsAltDown: event.altKey,
@@ -109,3 +109,4 @@ class InputService {
 }
 
 export default InputService;
+

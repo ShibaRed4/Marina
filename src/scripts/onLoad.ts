@@ -1,57 +1,78 @@
 import Render from "../engine/Render";
 import Util from "../engine/Util";
 import InputService from "../engine/InputService";
-import InstanceManager, { Instance } from "../engine/InstanceManager";
+import InstanceManager, {
+  Camera,
+  Instance,
+  InstanceType,
+} from "../engine/InstanceManager";
 
 const UIS = new InputService();
 
-export function init(_Renderer: Render, Instance: InstanceManager) {
+export function init(
+  _Renderer: Render,
+  Instance: InstanceManager,
+  _Camera: Camera,
+) {
   // Initialize master instance manager
 
-  const backGround = Instance.new("Frame"); // Frame refers to Roblox's "Frame" object which is just an image.
+  const backGround = Instance.new(InstanceType.Frame, "Background");
   backGround.Position = Util.Vector2(0, 0);
   backGround.Size = Util.Vector2(window.innerWidth, window.innerHeight);
-  backGround.ImageUrl = "../../assets/background-1.jpg"; // This will trigger the Proxy
-  backGround.Anchored = true;
+  backGround.ImageUrl = "../../assets/background-1.jpg";
 
-  const floor = Instance.new("Part", "Floor");
-  floor.Position = Util.Vector2(50, 500);
-  floor.Size = Util.Vector2(200, 50);
+  const floor = Instance.new(InstanceType.Part, "Floor");
+  floor.Position = Util.Vector2(0, 250);
+  floor.Size = Util.Vector2(1000, 100);
   floor.Anchored = true;
 
-  const player = Instance.new("Player", "MyPlayer"); // Create a player with a specific name
-  player.Position = Util.Vector2(100, 100);
-  player.Size = Util.Vector2(50, 50);
+  const player = Instance.new(InstanceType.Part, "MyPlayer");
+  player.Position = Util.Vector2(0, 0);
+  player.Size = Util.Vector2(100, 100);
+  player.Velocity = { x: 0, y: 0 };
+  player.IsGrounded = false;
 
-  // main.ts
+  // Collision handling
   player.on("Collided", (otherEntity: Instance) => {
-    if (otherEntity.Name === "Floor") {
-      player.Position = {
-        x: player.Position.x,
-        y: otherEntity.Position.y - player.Size.y, // Accurate position
-      };
-      player.Velocity.y = 0; // Stop falling
-    }
+	  player.Position = {
+		  x: player.Position.x,
+		  y: otherEntity.Position.y - player.Size.y
+	  }
+	  player.Velocity.y = 0;
+	  player.IsGrounded = true;
   });
-
+  // Input bindings
   UIS.bindInputBegan((inputObject) => {
-    if (inputObject.KeyCode === "Space") {
+    // Handle jumping
+    if (inputObject.KeyCode === "Space" && player.IsGrounded) {
       player.Velocity.y = -65;
+      player.IsGrounded = false;
     }
   });
+}
 
-  UIS.bindInputEnded((inputObject) => {
-	  const movementKeys = ["KeyD", "KeyA"];
-})
-
-export function onUpdate(_Renderer: Render, Instance: InstanceManager) {
+export function onUpdate(
+  _Renderer: Render,
+  Instance: InstanceManager,
+  Camera: Camera,
+) {
   const player = Instance.getInstance("MyPlayer");
+  const pressedKeys = UIS.getPressedKeys();
 
-
-  if (UIS.getCurrentKeyCode() === "KeyD") {
-    player.Velocity.x = 20;
+  // Handle horizontal movement
+  if (pressedKeys.some((key) => ["KeyA", "KeyD"].includes(key))) {
+    player.Velocity.x = pressedKeys.includes("KeyD") ? 40 : -40;
+  } else {
+    player.Velocity.x = 0;
   }
-  if (UIS.getCurrentKeyCode() === "KeyA") {
-    player.Velocity.x = -20;
+
+  Camera.Position = player.Position;
+
+  if (UIS.getPressedKeys().includes("ArrowUp")) {
+    Camera.Zoom += 0.1;
+  }
+  if (UIS.getPressedKeys().includes("ArrowDown")) {
+    if (Camera.Zoom - 0.1 < 0.1) return;
+    Camera.Zoom -= 0.1;
   }
 }
