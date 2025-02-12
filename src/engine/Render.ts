@@ -1,10 +1,14 @@
+import { AnimationStates } from "./Animation";
+
 class Render {
   ctx: CanvasRenderingContext2D;
   renderQueue: Array<any>;
   renderFunctions: Array<(deltaTime: number) => void>;
+  currentFrame: number;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
+    this.currentFrame = 0;
     this.renderQueue = [];
     this.renderFunctions = [];
   }
@@ -24,6 +28,37 @@ class Render {
     }
   }
 
+  getFrameFromSpritesheet(
+    spritesheet: HTMLImageElement,
+    frameIndex: number,
+    frameWidth: number,
+    frameHeight: number,
+  ): { x: number; y: number; width: number; height: number } {
+    // Calculate frames per row in the spritesheet
+    const framesPerRow = Math.floor(spritesheet.width / frameWidth);
+
+    // Calculate row and column of the frame
+    const row = Math.floor(frameIndex / framesPerRow);
+    const col = frameIndex % framesPerRow;
+
+    // Calculate pixel coordinates of the frame
+    return {
+      x: col * frameWidth,
+      y: row * frameHeight,
+      width: frameWidth,
+      height: frameHeight,
+    };
+  }
+
+  loadImage(url: string): HTMLImageElement {
+    let tempImage = new Image();
+    tempImage.src = url;
+
+    return tempImage;
+  }
+
+  // Usage examp
+
   unPack() {
     this.ctx.clearRect(
       -this.ctx.canvas.width / 2,
@@ -42,14 +77,15 @@ class Render {
         ProjectedPosition,
         ProjectedSize,
         Size,
-        ImageUrl,
+        Texture,
+        Animator,
       } = obj;
 
       switch (instanceType) {
         case "Frame":
-          if (ImageUrl) {
+          if (Texture) {
             let htmlImage = new Image(Size.x, Size.y);
-            htmlImage.src = ImageUrl;
+            htmlImage.src = Texture;
             this.ctx.drawImage(
               htmlImage,
               Position.x - Size.x / 2,
@@ -62,13 +98,64 @@ class Render {
         case "Camera":
           break;
         case "Part":
-          this.ctx.fillStyle = "white";
-          this.ctx.fillRect(
-            ProjectedPosition.x - ProjectedSize.x / 2,
-            ProjectedPosition.y - ProjectedSize.y / 2,
-            ProjectedSize.x,
-            ProjectedSize.y,
-          );
+          if (Animator.state === AnimationStates.Playing) {
+            let currentAnimation = Animator.getCurrentAnimation();
+
+            if (currentAnimation) {
+              let spriteSheet = new Image();
+              spriteSheet.src = currentAnimation.Image;
+
+              // When it's time to draw the next frame.
+              if (this.currentFrame % currentAnimation.FPS === 0) {
+                if (Animator.currentFrame === currentAnimation.FrameAmount) {
+                  Animator.currentFrame = 1;
+                } else {
+                  Animator.currentFrame += 1;
+                }
+              }
+
+              const frame = this.getFrameFromSpritesheet(
+                spriteSheet,
+                Animator.currentFrame,
+                currentAnimation.FrameDimensions.x,
+                currentAnimation.FrameDimensions.y,
+              );
+
+              // Final push to draw
+              this.ctx.drawImage(
+                spriteSheet,
+                frame.x,
+                frame.y,
+                frame.width,
+                frame.height,
+                ProjectedPosition.x - ProjectedSize.x / 2,
+                ProjectedPosition.y - ProjectedSize.y / 2,
+                ProjectedSize.x,
+                ProjectedSize.y,
+              );
+            } else {
+              // Draw with missing texture if no animation
+              let missingTexture = this.loadImage("../assets/missing.jpg");
+              this.ctx.drawImage(
+                missingTexture,
+                ProjectedPosition.x - ProjectedSize.x / 2,
+                ProjectedPosition.y - ProjectedSize.y / 2,
+                ProjectedSize.x,
+                ProjectedSize.y,
+              );
+            }
+          } else {
+            // Draw with missing texture if animation is not playing
+            let missingTexture = this.loadImage("../assets/missing.jpg");
+
+            this.ctx.drawImage(
+              missingTexture,
+              ProjectedPosition.x - ProjectedSize.x / 2,
+              ProjectedPosition.y - ProjectedSize.y / 2,
+              ProjectedSize.x,
+              ProjectedSize.y,
+            );
+          }
           break;
       }
     }
@@ -83,9 +170,9 @@ class Render {
     const loop = (currentTime: number) => {
       let deltaTime = (currentTime - lastTime) / 1000;
       deltaTime = Math.min(deltaTime, 0.1);
-
       lastTime = currentTime;
 
+      this.currentFrame += 1;
       this.unPack(); // Call unPack inside the loop
 
       // Call renderFunctions after unPack

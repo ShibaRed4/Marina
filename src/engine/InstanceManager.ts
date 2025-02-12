@@ -1,3 +1,4 @@
+import Animation from "./Animation";
 import EventEmitter from "./Events";
 import Util from "./Util";
 
@@ -18,13 +19,14 @@ export interface Instance {
   Parent: string;
   CanCollide: boolean;
   Anchored: boolean;
-  ImageUrl: any; // Initialize to null
+  Animator: Animation
+  Texture: any; // Initialize to null
   IsGrounded: boolean;
   eventEmitter: EventEmitter;
   Physics: boolean;
   on(event: string, callback: (...args: any[]) => void): void;
   off(event: string, callback: (...args: any[]) => void): void;
-  collide: (entity: Instance) => void;
+  collide: (entity: Instance, overlaps:{xOverlap: number, yOverlap: number}) => void;
 }
 
 export interface Camera {
@@ -62,9 +64,11 @@ class InstanceManager {
           Rotation: 0,
           Parent: null,
           CanCollide: true,
+	  Animator: new Animation(this.Renderer),
           Anchored: false,
           IsGrounded: false,
 	  Physics: true,
+	  Frame: 0,
           on: function (
             event: string,
             callback: (...args: any[]) => void,
@@ -79,10 +83,10 @@ class InstanceManager {
             this.eventEmitter.off(event, callback);
           },
           eventEmitter: new EventEmitter(),
-          collide: function (entity: Instance) {
-            this.eventEmitter.emit("Collided", entity); // Use eventEmitter
+          collide: function (entity: Instance, overlaps: {xOverlap: number, yOverlap: number}) {
+            this.eventEmitter.emit("Collided", entity, overlaps); // Use eventEmitter
           },
-          ImageUrl: null as HTMLImageElement | null, // Initialize to null
+          Texture: null as HTMLImageElement | null, // Initialize to null
         };
       case InstanceType.Camera:
         return {

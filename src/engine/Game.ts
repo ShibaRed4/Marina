@@ -6,48 +6,60 @@ class Game {
   private gravity: number;
   public ctx: CanvasRenderingContext2D;
 
-  constructor(instanceManager: InstanceManager, ctx: CanvasRenderingContext2D, gravity: number = 240) {
+  constructor(
+    instanceManager: InstanceManager,
+    ctx: CanvasRenderingContext2D,
+    gravity: number = 240,
+  ) {
     this.instanceManager = instanceManager;
-    this.ctx = ctx
+    this.ctx = ctx;
     this.gravity = gravity;
   }
 
-checkCollision(entity1: Instance, entity2: Instance): boolean {
-  const rect1 = {
-    x: entity1.ProjectedPosition?.x ?? entity1.Position.x,
-    y: entity1.ProjectedPosition?.y ?? entity1.Position.y,
-    width: entity1.ProjectedSize?.x ?? entity1.Size.x,
-    height: entity1.ProjectedSize?.y ?? entity1.Size.y,
-  };
-  const rect2 = {
-    x: entity2.ProjectedPosition?.x ?? entity2.Position.x,
-    y: entity2.ProjectedPosition?.y ?? entity2.Position.y,
-    width: entity2.ProjectedSize?.x ?? entity2.Size.x,
-    height: entity2.ProjectedSize?.y ?? entity2.Size.y,
-  };
+  checkCollision(
+    entity1: Instance,
+    entity2: Instance,
+  ): { colliding: boolean; xOverlap: number; yOverlap: number } {
+    const rect1 = {
+      x: entity1.ProjectedPosition?.x ?? entity1.Position.x,
+      y: entity1.ProjectedPosition?.y ?? entity1.Position.y,
+      width: entity1.ProjectedSize?.x ?? entity1.Size.x,
+      height: entity1.ProjectedSize?.y ?? entity1.Size.y,
+    };
+    const rect2 = {
+      x: entity2.ProjectedPosition?.x ?? entity2.Position.x,
+      y: entity2.ProjectedPosition?.y ?? entity2.Position.y,
+      width: entity2.ProjectedSize?.x ?? entity2.Size.x,
+      height: entity2.ProjectedSize?.y ?? entity2.Size.y,
+    };
 
-  // Since we're using center-origin coordinates, we need to offset by half the width/height
-  // for both rectangles to get their true boundaries
-  const rect1Left = rect1.x - rect1.width / 2;
-  const rect1Right = rect1.x + rect1.width / 2;
-  const rect1Top = rect1.y - rect1.height / 2;
-  const rect1Bottom = rect1.y + rect1.height / 2;
+    // Since we're using center-origin coordinates, we need to offset by half the width/height
+    // for both rectangles to get their true boundaries
+    const rect1Left = rect1.x - rect1.width / 2;
+    const rect1Right = rect1.x + rect1.width / 2;
+    const rect1Top = rect1.y - rect1.height / 2;
+    const rect1Bottom = rect1.y + rect1.height / 2;
 
-  const rect2Left = rect2.x - rect2.width / 2;
-  const rect2Right = rect2.x + rect2.width / 2;
-  const rect2Top = rect2.y - rect2.height / 2;
-  const rect2Bottom = rect2.y + rect2.height / 2;
+    const rect2Left = rect2.x - rect2.width / 2;
+    const rect2Right = rect2.x + rect2.width / 2;
+    const rect2Top = rect2.y - rect2.height / 2;
+    const rect2Bottom = rect2.y + rect2.height / 2;
 
-  // Perform collision check with centered coordinates
-  return (
-    rect1Left < rect2Right &&
-    rect1Right > rect2Left &&
-    rect1Top < rect2Bottom &&
-    rect1Bottom > rect2Top
-  );
-}
+    // Perform collision check with centered coordinates
+    const xOverlap =
+      Math.min(rect1Right, rect2Right) - Math.max(rect1Left, rect2Left);
+    const yOverlap =
+      Math.min(rect1Bottom, rect2Bottom) - Math.max(rect1Top, rect2Top);
 
+    // Check if actually colliding
+    const colliding = xOverlap > 0 && yOverlap > 0;
 
+    return {
+      colliding,
+      xOverlap: colliding ? xOverlap : 0,
+      yOverlap: colliding ? yOverlap : 0,
+    };
+  }
 
   // Physics Simulation Step
   simulatePhysics(deltaTime: number): void {
@@ -77,10 +89,16 @@ checkCollision(entity1: Instance, entity2: Instance): boolean {
         const entity2 = instances[j];
 
         if (entity1.Physics && entity2.Physics) {
-          if (this.checkCollision(entity1, entity2)) {
-            // Trigger the Collided event on both entities
-            entity1.collide(entity2);
-            entity2.collide(entity1);
+          const collisionCheck = this.checkCollision(entity1, entity2);
+          if (collisionCheck.colliding) {
+          entity1.collide(entity2, {
+              xOverlap: collisionCheck.xOverlap,
+              yOverlap: collisionCheck.yOverlap,
+            });
+            entity2.collide(entity1, {
+              xOverlap: collisionCheck.xOverlap,
+              yOverlap: collisionCheck.yOverlap,
+            });
           }
         }
       }
