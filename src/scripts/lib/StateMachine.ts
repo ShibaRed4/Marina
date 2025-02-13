@@ -2,6 +2,7 @@ export enum States {
   IDLE = "Idle",
   WALKING = "Walking",
   JUMPING = "Jumping",
+  ATTACKING = "Attacking",
 }
 
 class StateMachine {

@@ -7,6 +7,7 @@ import InstanceManager, {
   InstanceType,
 } from "../engine/InstanceManager";
 import StateMachine, { States } from "./lib/StateMachine";
+import PlayerAnimations from "./data/PlayerAnimations"; 
 
 const PlayerStates = new StateMachine();
 const UIS = new InputService();
@@ -21,7 +22,7 @@ export function init(
   const backGround = Instance.new(InstanceType.Frame, "Background");
   backGround.Position = Util.Vector2(0, 0);
   backGround.Size = Util.Vector2(window.innerWidth, window.innerHeight);
-  backGround.Texture = "../../assets/background-1.jpg";
+  backGround.Texture = "../../assets/background-2.png";
 
   const floor = Instance.new(InstanceType.Part, "Floor");
   floor.Position = Util.Vector2(0, 250);
@@ -36,27 +37,23 @@ export function init(
   );
   wall.Anchored = true;
 
+  const text = Instance.text("Test");
+  text.Size = 65
+
+  const newtext = Instance.text("newTest");
+  newtext.Size = 65
+  newtext.Position = Util.Vector2(0, 0)
+
   const player = Instance.new(InstanceType.Part, "MyPlayer");
   player.Position = Util.Vector2(0, 0);
   player.Size = Util.Vector2(100, 100);
   player.Velocity = { x: 0, y: 0 };
   player.IsGrounded = false;
 
-  player.Animator.create("Idle", {
-    Image: "../../assets/Idle.png",
-    FrameDimensions: Util.Vector2(128, 128),
-    FPS: 6,
-    FrameAmount: 6,
-  });
+  player.Animator.bulkLoad(PlayerAnimations)
 
-  player.Animator.create("Walk", {
-    Image: "../../assets/Walk.png",
-    FrameDimensions: Util.Vector2(128, 128),
-    FPS: 6,
-    FrameAmount: 11,
-  });
+  player.Animator.play("Idle")
 
-  player.Animator.play("Idle");
 
   // Collision handling
 
@@ -111,35 +108,58 @@ export function init(
       player.IsGrounded = false;
       player.Position.y -= 1; // Small offset to ensure we're clear of the ground
     }
+
+    if(inputObject.KeyCode === "KeyH"){
+	    player.Velocity.x = 0;
+	    PlayerStates.changeState(States.ATTACKING)
+    } 
   });
 
   PlayerStates.addInitFunction(States.WALKING, (_oldState: States) => {
-    player.Animator.play("Walk");
+    player.Animator.play("Walking");
   });
 
   PlayerStates.addInitFunction(States.IDLE, () => {
     player.Animator.play("Idle");
   });
+
+  PlayerStates.addInitFunction(States.ATTACKING, () => {
+	  console.log("Attacking!")
+	  player.Animator.play("Attack")
+  })
+
+  player.Animator.onEnd((animation: string) => {
+	  if(animation === "Attack"){
+		  PlayerStates.changeState(States.IDLE)
+	  }
+  })
+
 }
 
 export function onUpdate(
   _Renderer: Render,
   Instance: InstanceManager,
   Camera: Camera,
+  deltaTime: number
 ) {
-  const player = Instance.getInstance("MyPlayer");
 
+
+	const fps = 1/deltaTime
+  const player = Instance.getInstance("MyPlayer");
+  const text = Instance.getUI("Test");
   const pressedKeys = UIS.getPressedKeys();
 
+  text.Text = `FPS: ${Math.round(fps)}`
+
   // Handle horizontal movement
-  if (pressedKeys.some((key) => ["KeyA", "KeyD"].includes(key))) {
+  if (pressedKeys.some((key) => ["KeyA", "KeyD"].includes(key)))  {
     player.Velocity.x = pressedKeys.includes("KeyD") ? 40 : -40;
 
-    if (PlayerStates.state !== States.WALKING) {
+    if (PlayerStates.state !== States.WALKING && PlayerStates.state !== States.ATTACKING) {
       PlayerStates.changeState(States.WALKING);
     }
   } else {
-    if (PlayerStates.state !== States.IDLE) {
+    if (PlayerStates.state !== States.IDLE && PlayerStates.state !== States.ATTACKING) {
       PlayerStates.changeState(States.IDLE);
     }
     player.Velocity.x = 0;

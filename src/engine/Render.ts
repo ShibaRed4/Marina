@@ -79,6 +79,7 @@ class Render {
         Size,
         Texture,
         Animator,
+
       } = obj;
 
       switch (instanceType) {
@@ -109,6 +110,7 @@ class Render {
               if (this.currentFrame % currentAnimation.FPS === 0) {
                 if (Animator.currentFrame === currentAnimation.FrameAmount) {
                   Animator.currentFrame = 1;
+                  Animator.finish(Animator.currentAnimation);
                 } else {
                   Animator.currentFrame += 1;
                 }

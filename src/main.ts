@@ -24,8 +24,8 @@ async function loadScripts(): Promise<void> {
       const module: any = await pluginFiles[filePath]();
 
       if (typeof module.onUpdate === "function") {
-        MainRenderer.renderFunctions.push(() =>
-          module.onUpdate(MainRenderer, MainInstanceManager, MainCamera),
+        MainRenderer.renderFunctions.push((deltaTime: number) =>
+          module.onUpdate(MainRenderer, MainInstanceManager, MainCamera, deltaTime),
         ); // Pass MainRenderer
       } else {
         console.warn(

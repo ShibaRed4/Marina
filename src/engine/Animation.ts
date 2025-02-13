@@ -1,3 +1,4 @@
+import EventEmitter from "./Events";
 import Render from "./Render";
 import { Vector2 } from "./Util";
 
@@ -21,12 +22,15 @@ class Animation {
   state: string;
   currentAnimation: string;
   currentFrame: number;
+  eventEmitter: EventEmitter;
+
   constructor(Renderer: Render) {
     this.Renderer = Renderer;
     this.loadedAnimations = {};
     this.state = AnimationStates.Stopped;
     this.currentAnimation = "";
     this.currentFrame = 1;
+    this.eventEmitter = new EventEmitter();
   }
 
   getCurrentAnimation(): AnimationObject | undefined {
@@ -34,6 +38,12 @@ class Animation {
       return this.loadedAnimations[this.currentAnimation];
     }
     return undefined; // Or return a default AnimationObject if appropriate
+  }
+
+  bulkLoad(animationList: { [name: string]: AnimationObject }): void {
+    Object.entries(animationList).forEach(([animationName, animation]) => {
+	    this.create(animationName, animation)
+    });
   }
 
   create(name: string, anim: AnimationObject): void {
@@ -47,6 +57,14 @@ class Animation {
   stop(): void {
     this.currentAnimation = "";
     this.state = AnimationStates.Stopped;
+  }
+
+  onEnd(func_: (animationName: string) => void): void {
+    this.eventEmitter.on("finished", func_);
+  }
+
+  finish(animationName: string): void {
+    this.eventEmitter.emit("finished", animationName);
   }
 }
 
