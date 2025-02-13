@@ -28,6 +28,7 @@ export function init(
   floor.Position = Util.Vector2(0, 250);
   floor.Size = Util.Vector2(1000, 100);
   floor.Anchored = true;
+  floor.Texture = "../../assets/platform.png";
 
   const wall = Instance.new(InstanceType.Part, "Wall");
   wall.Size = Util.Vector2(25, 100);
@@ -36,6 +37,7 @@ export function init(
     150,
   );
   wall.Anchored = true;
+  wall.Texture = "../../assets/platform.png";
 
   const text = Instance.text("Test");
   text.Size = 65

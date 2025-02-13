@@ -79,7 +79,6 @@ class Render {
         Size,
         Texture,
         Animator,
-
       } = obj;
 
       switch (instanceType) {
@@ -147,16 +146,29 @@ class Render {
               );
             }
           } else {
-            // Draw with missing texture if animation is not playing
-            let missingTexture = this.loadImage("../assets/missing.jpg");
+            // Check for a texture property and load it if it exists
+            if (Texture) {
+              let textureImage = this.loadImage(Texture); // Assuming 'this.texture' holds the path
 
-            this.ctx.drawImage(
-              missingTexture,
-              ProjectedPosition.x - ProjectedSize.x / 2,
-              ProjectedPosition.y - ProjectedSize.y / 2,
-              ProjectedSize.x,
-              ProjectedSize.y,
-            );
+              this.ctx.drawImage(
+                textureImage,
+                ProjectedPosition.x - ProjectedSize.x / 2,
+                ProjectedPosition.y - ProjectedSize.y / 2,
+                ProjectedSize.x,
+                ProjectedSize.y,
+              );
+            } else {
+              // Draw with missing texture if animation is not playing and no texture
+              let missingTexture = this.loadImage("../assets/missing.jpg");
+
+              this.ctx.drawImage(
+                missingTexture,
+                ProjectedPosition.x - ProjectedSize.x / 2,
+                ProjectedPosition.y - ProjectedSize.y / 2,
+                ProjectedSize.x,
+                ProjectedSize.y,
+              );
+            }
           }
           break;
       }
