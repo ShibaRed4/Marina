@@ -60,6 +60,7 @@ class Render {
   // Usage examp
 
   unPack() {
+    this.ctx.translate(this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
     this.ctx.clearRect(
       -this.ctx.canvas.width / 2,
       -this.ctx.canvas.height / 2,
@@ -68,7 +69,6 @@ class Render {
     );
 
     // Move the origin to the center
-    this.ctx.translate(this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
 
     for (const obj of this.renderQueue) {
       const {

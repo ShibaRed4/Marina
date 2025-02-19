@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Silly Fighting Game</title>
+		<style>
+@font-face {
+	font-family: pixelArtFont;
+	src: url("./assets/fonts/upheavtt.ttf");
+}
+			body, html {
+				margin: 0;
+				padding: 0;
+				overflow: hidden; /* Prevent scrollbars */
+			}
+			canvas {
+				display: block;
+			}
+			.ui {
+				position: absolute; /* Position the UI div absolutely */
+				top: 0;
+				left: 0;
+				width: 100%; /* Full width */
+				height: 100%; /* Full height */
+				pointer-events: none; /* Allow clicks to pass through to the canvas */
+				color: white; /* Text color */
+				font-family: pixelArtFont; /* Use your custom font */
+				display: flex; /* Use flexbox for layout */
+				justify-content: flex-start; /* Align items to the start */
+				flex-direction: column;
+				align-items: flex-start; /* Align items to the start */
+				padding: 10px; /* Add some padding */
+				box-sizing: border-box; /* Include padding in width/height */
+			}
+			.score {
+				pointer-events: auto; /* Allow interactions with this element */
+			}
+		</style>
+
+	</head>
+	<body>
+		<canvas class="main">
+
+		</canvas>
+		<div class="ui">
+
+		</div>
+		<script type="module" src="./src/main.ts"></script>
+	</body>
+</html>

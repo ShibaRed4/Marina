@@ -18,10 +18,12 @@ export function init(
   _Camera: Camera,
 ) {
   // Initialize master instance manager
+	//
+  _Camera.Zoom = 1.5
 
   const backGround = Instance.new(InstanceType.Frame, "Background");
   backGround.Position = Util.Vector2(0, 0);
-  backGround.Size = Util.Vector2(window.innerWidth, window.innerHeight);
+  backGround.Size = Util.Vector2(1920,1080);
   backGround.Texture = "../../assets/background-2.png";
 
   const floor = Instance.new(InstanceType.Part, "Floor");
